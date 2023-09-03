@@ -26,7 +26,7 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUserById = (req, res) => {
-  User.findOne({ _id: req.param._id })
+  User.findOne({ _id: req.params.id })
     .then((user) => {
       if (user === null) {
         return res.status(404).send({
