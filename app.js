@@ -22,12 +22,14 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
-
 app.use('/users', users);
 app.use('/cards', cards);
+
+app.use((req, res) => {
+  res.status(404).send({
+    message: 'Неправильный запрос API',
+  });
+});
 
 app.listen(port, () => {
   console.log(`Mesto backend app listening on port ${port}`);
