@@ -30,5 +30,5 @@ app.use('/users', users);
 app.use('/cards', cards);
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Mesto backend app listening on port ${port}`);
 });
