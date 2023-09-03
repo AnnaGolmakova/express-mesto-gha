@@ -6,25 +6,46 @@ module.exports.createCard = (req, res) => {
 
   Card.create({ name, link, owner })
     .then((card) => res.send(card))
-    .catch(() => res.status(400).send({
-      message: 'Не удалось создать карточку',
-    }));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return res.status(400).send({
+          message: 'Не удалось создать карточку',
+        });
+      }
+      return res.status(500).send({
+        message: 'Произошла неизвестная ошибка',
+      });
+    });
 };
 
 module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.send(cards))
-    .catch(() => res.status(404).send({
-      message: 'Карточки не найдены',
+    .catch(() => res.status(500).send({
+      message: 'Не удалось получить карточки',
     }));
 };
 
 module.exports.deleteCardById = (req, res) => {
   Card.findOneAndRemove({ _id: req.params.id })
-    .then((card) => res.send(card))
-    .catch(() => res.status(404).send({
-      message: 'Карточка не найдена',
-    }));
+    .then((card) => {
+      if (card === null) {
+        return res.status(404).send({
+          message: 'Карточка не найдена',
+        });
+      }
+      return res.send(card);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(400).send({
+          message: 'Неправильно передан ID карточки',
+        });
+      }
+      return res.status(500).send({
+        message: 'Неизвестная ошибка',
+      });
+    });
 };
 
 module.exports.putLike = (req, res) => {
@@ -35,10 +56,24 @@ module.exports.putLike = (req, res) => {
     },
     { new: true },
   )
-    .then((card) => res.send(card))
-    .catch(() => res.status(404).send({
-      message: 'Карточка не найдена',
-    }));
+    .then((card) => {
+      if (card === null) {
+        return res.status(404).send({
+          message: 'Карточка не найдена',
+        });
+      }
+      return res.send(card);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(400).send({
+          message: 'Неправильно передан ID карточки',
+        });
+      }
+      return res.status(500).send({
+        message: 'Неизвестная ошибка',
+      });
+    });
 };
 
 module.exports.deleteLike = (req, res) => {
@@ -47,10 +82,25 @@ module.exports.deleteLike = (req, res) => {
     {
       $pull: { likes: req.user._id },
     },
+
     { new: true },
   )
-    .then((card) => res.send(card))
-    .catch(() => res.status(404).send({
-      message: 'Карточка не найдена',
-    }));
+    .then((card) => {
+      if (card === null) {
+        return res.status(404).send({
+          message: 'Карточка не найдена',
+        });
+      }
+      return res.send(card);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(400).send({
+          message: 'Неправильно передан ID карточки',
+        });
+      }
+      return res.status(500).send({
+        message: 'Неизвестная ошибка',
+      });
+    });
 };
