@@ -20,6 +20,7 @@ module.exports.createCard = (req, res) => {
 
 module.exports.getCards = (req, res) => {
   Card.find({})
+    .populate(['owner', 'likes'])
     .then((cards) => res.send(cards))
     .catch(() => res.status(500).send({
       message: 'Не удалось получить карточки',
@@ -56,6 +57,7 @@ module.exports.putLike = (req, res) => {
     },
     { new: true },
   )
+    .populate('likes')
     .then((card) => {
       if (card === null) {
         return res.status(404).send({
@@ -85,6 +87,7 @@ module.exports.deleteLike = (req, res) => {
 
     { new: true },
   )
+    .populate('likes')
     .then((card) => {
       if (card === null) {
         return res.status(404).send({
