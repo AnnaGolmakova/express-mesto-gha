@@ -48,8 +48,25 @@ module.exports.getUserById = (req, res) => {
 };
 
 module.exports.getMyUser = (req, res) => {
-  req.param._id = req.user._id;
-  this.getUserById(req, res);
+  User.findOne({ _id: req.user._id })
+    .then((user) => {
+      if (user === null) {
+        return res.status(404).send({
+          message: 'Пользователь не найден',
+        });
+      }
+      return res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(400).send({
+          message: 'Неправильно передан ID пользователя',
+        });
+      }
+      return res.status(500).send({
+        message: 'Не удалось получить данные о пользователе',
+      });
+    });
 };
 
 module.exports.updateUserInfo = (req, res) => {
