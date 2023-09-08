@@ -13,7 +13,7 @@ module.exports.createCard = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(BAD_REQUEST).send({
-          message: 'Не удалось создать карточку',
+          message: 'Переданы некорректные данные в методы создания карточки',
         });
       }
       return res.status(INTERNAL_SERVER_ERROR).send({

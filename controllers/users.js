@@ -12,7 +12,7 @@ module.exports.createUser = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(BAD_REQUEST).send({
-          message: 'Не удалось создать пользователя',
+          message: 'Переданы некорректные данные в методы создания пользователя',
         });
       }
       return res.status(INTERNAL_SERVER_ERROR).send({
@@ -74,11 +74,11 @@ module.exports.getMyUser = (req, res) => {
 };
 
 module.exports.updateUserInfo = (req, res) => {
-  const { name, about, avatar } = req.body;
+  const { name, about } = req.body;
 
   User.findByIdAndUpdate(
     req.user._id,
-    { name, about, avatar },
+    { name, about },
     {
       new: true,
       runValidators: true,
@@ -104,5 +104,31 @@ module.exports.updateUserInfo = (req, res) => {
 };
 
 module.exports.updateAvatar = (req, res) => {
-  this.updateUserInfo(req, res);
+  const { avatar } = req.body;
+
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    {
+      new: true,
+      runValidators: true,
+      upsert: false,
+    },
+  )
+    .then((user) => {
+      if (user === null) {
+        return res.status(NOT_FOUND).send({
+          message: 'Пользователь не найден',
+        });
+      }
+      return res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return res.status(BAD_REQUEST).send({
+          message: 'Неправильно переданы данные',
+        });
+      }
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+    });
 };
