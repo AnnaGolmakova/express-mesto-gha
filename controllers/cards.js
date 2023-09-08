@@ -1,5 +1,9 @@
 const Card = require('../models/card');
 
+const BAD_REQUEST = 400;
+const NOT_FOUND = 404;
+const INTERNAL_SERVER_ERROR = 500;
+
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   const owner = req.user._id;
@@ -8,11 +12,11 @@ module.exports.createCard = (req, res) => {
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({
+        return res.status(BAD_REQUEST).send({
           message: 'Не удалось создать карточку',
         });
       }
-      return res.status(500).send({
+      return res.status(INTERNAL_SERVER_ERROR).send({
         message: 'Произошла неизвестная ошибка',
       });
     });
@@ -22,7 +26,7 @@ module.exports.getCards = (req, res) => {
   Card.find({})
     .populate(['owner', 'likes'])
     .then((cards) => res.send(cards))
-    .catch(() => res.status(500).send({
+    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({
       message: 'Не удалось получить карточки',
     }));
 };
@@ -31,7 +35,7 @@ module.exports.deleteCardById = (req, res) => {
   Card.findOneAndRemove({ _id: req.params.id })
     .then((card) => {
       if (card === null) {
-        return res.status(404).send({
+        return res.status(NOT_FOUND).send({
           message: 'Карточка не найдена',
         });
       }
@@ -39,11 +43,11 @@ module.exports.deleteCardById = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(400).send({
+        return res.status(BAD_REQUEST).send({
           message: 'Неправильно передан ID карточки',
         });
       }
-      return res.status(500).send({
+      return res.status(INTERNAL_SERVER_ERROR).send({
         message: 'Неизвестная ошибка',
       });
     });
@@ -60,7 +64,7 @@ module.exports.putLike = (req, res) => {
     .populate('likes')
     .then((card) => {
       if (card === null) {
-        return res.status(404).send({
+        return res.status(NOT_FOUND).send({
           message: 'Карточка не найдена',
         });
       }
@@ -68,11 +72,11 @@ module.exports.putLike = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(400).send({
+        return res.status(BAD_REQUEST).send({
           message: 'Неправильно передан ID карточки',
         });
       }
-      return res.status(500).send({
+      return res.status(INTERNAL_SERVER_ERROR).send({
         message: 'Неизвестная ошибка',
       });
     });
@@ -90,7 +94,7 @@ module.exports.deleteLike = (req, res) => {
     .populate('likes')
     .then((card) => {
       if (card === null) {
-        return res.status(404).send({
+        return res.status(NOT_FOUND).send({
           message: 'Карточка не найдена',
         });
       }
@@ -98,11 +102,11 @@ module.exports.deleteLike = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(400).send({
+        return res.status(BAD_REQUEST).send({
           message: 'Неправильно передан ID карточки',
         });
       }
-      return res.status(500).send({
+      return res.status(INTERNAL_SERVER_ERROR).send({
         message: 'Неизвестная ошибка',
       });
     });
