@@ -8,6 +8,8 @@ const cards = require('./routes/cards');
 const app = express();
 const port = 3000;
 
+const { NOT_FOUND } = require('./constants');
+
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
 });
@@ -26,7 +28,7 @@ app.use('/users', users);
 app.use('/cards', cards);
 
 app.use((req, res) => {
-  res.status(404).send({
+  res.status(NOT_FOUND).send({
     message: 'Неправильный запрос API',
   });
 });
