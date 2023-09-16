@@ -1,8 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const {
-  BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR, UNAUTHORIZED,
-} = require('../constants');
+const { UNAUTHORIZED } = require('../constants');
 
 module.exports = (req, res, next) => {
   const { cookies } = req;

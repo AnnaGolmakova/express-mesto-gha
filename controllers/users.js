@@ -19,6 +19,12 @@ module.exports.createUser = (req, res) => {
     });
   }
 
+  if (password) {
+    return res.status(BAD_REQUEST).send({
+      message: 'Введите пароль',
+    });
+  }
+
   return bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
