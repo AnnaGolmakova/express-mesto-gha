@@ -13,7 +13,7 @@ module.exports.createUser = (req, res) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  if (!validator.isEmail(email)) {
+  if (email && !validator.isEmail(email)) {
     return res.status(BAD_REQUEST).send({
       message: 'Передан неправильный email',
     });
@@ -157,16 +157,18 @@ module.exports.login = (req, res) => {
         return Promise.reject(new Error('Неправильные почта или пароль'));
       }
 
-      return bcrypt.compare(password, user.password);
+      return [bcrypt.compare(password, user.password), user];
     })
-    .then((matched) => {
+    .then(([matched, user]) => {
       if (!matched) {
         return Promise.reject(new Error('Неправильные почта или пароль'));
       }
 
-      const token = jwt.sign({ _id: matched._id }, 'some-secret-key', { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
 
-      return res.cookie('token', token, { httpOnly: true });
+      return res
+        .cookie('token', token, { httpOnly: true })
+        .send({ message: 'Logged in successfully 😊 👌' });
     })
     .catch((err) => {
       res
