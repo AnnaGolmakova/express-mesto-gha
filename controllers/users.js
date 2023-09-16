@@ -1,11 +1,23 @@
+const validator = require('validator');
+
 const User = require('../models/user');
 
 const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR } = require('../constants');
 
 module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
-  User.create({ name, about, avatar })
+  if (!validator.isEmail(email)) {
+    return res.status(BAD_REQUEST).send({
+      message: 'Передан неправильный email',
+    });
+  }
+
+  User.create({
+    name, about, avatar, email, password,
+  })
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
