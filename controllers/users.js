@@ -19,7 +19,7 @@ module.exports.createUser = (req, res) => {
     });
   }
 
-  bcrypt.hash(password, 10)
+  return bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
@@ -166,7 +166,7 @@ module.exports.login = (req, res) => {
 
       const token = jwt.sign({ _id: matched._id }, 'some-secret-key', { expiresIn: '7d' });
 
-      res.cookie('token', token, { httpOnly: true });
+      return res.cookie('token', token, { httpOnly: true });
     })
     .catch((err) => {
       res
