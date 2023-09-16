@@ -1,6 +1,8 @@
 const Card = require('../models/card');
 
-const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR } = require('../constants');
+const {
+  BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR, UNAUTHORIZED,
+} = require('../constants');
 
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
@@ -30,13 +32,19 @@ module.exports.getCards = (req, res) => {
 };
 
 module.exports.deleteCardById = (req, res) => {
-  Card.findOneAndRemove({ _id: req.params.id })
+  Card.findOne({ _id: req.params.id })
     .then((card) => {
       if (card === null) {
         return res.status(NOT_FOUND).send({
           message: 'Карточка не найдена',
         });
       }
+      if (card.owner.toString() !== req.user._id) {
+        return res.status(UNAUTHORIZED).send({
+          message: 'У вас нет прав на удаление этой карточки',
+        });
+      }
+      card.deleteOne();
       return res.send(card);
     })
     .catch((err) => {

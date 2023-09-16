@@ -19,7 +19,7 @@ module.exports.createUser = (req, res) => {
     });
   }
 
-  if (password) {
+  if (!password) {
     return res.status(BAD_REQUEST).send({
       message: 'Введите пароль',
     });
@@ -157,7 +157,7 @@ module.exports.updateAvatar = (req, res) => {
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
 
-  User.findOne({ email })
+  User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error('Неправильные почта или пароль'));
