@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const { celebrate, errors, Joi } = require('celebrate');
 
 const users = require('./routes/users');
 const cards = require('./routes/cards');
@@ -11,7 +12,7 @@ const auth = require('./middlewares/auth');
 const app = express();
 const port = 3000;
 
-const { NOT_FOUND } = require('./constants');
+const NotFoundError = require('./errors/not-found-err');
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
@@ -20,18 +21,32 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+  }),
+}), login);
+
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+    avatar: Joi.string().uri(),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+  }),
+}), createUser);
 
 app.use(auth);
 app.use('/users', users);
 app.use('/cards', cards);
 
-app.use((req, res) => {
-  res.status(NOT_FOUND).send({
-    message: 'Неправильный запрос API',
-  });
+app.use((req, res, next) => {
+  next(new NotFoundError('Неправильный запрос API'));
 });
+
+app.use(errors());
 
 /* eslint no-unused-vars: 1 */
 app.use((err, req, res, next) => {
