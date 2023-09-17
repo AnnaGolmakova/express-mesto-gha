@@ -1,9 +1,5 @@
 const Card = require('../models/card');
 
-const {
-  BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR, UNAUTHORIZED,
-} = require('../constants');
-
 const NotFoundError = require('../errors/not-found-err');
 const InternalServerError = require('../errors/internal-server-err');
 const BadRequestError = require('../errors/bad-request-err');
@@ -19,7 +15,7 @@ module.exports.createCard = (req, res, next) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные в методы создания карточки'));
       }
-      return next(new InternalServerError('Произошла неизвестная ошибка'));
+      return next(err);
     });
 };
 
@@ -46,7 +42,7 @@ module.exports.deleteCardById = (req, res, next) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Неправильно передан ID карточки'));
       }
-      return next(new InternalServerError('Неизвестная ошибка'));
+      return next(err);
     });
 };
 
@@ -69,7 +65,7 @@ module.exports.putLike = (req, res, next) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Неправильно передан ID карточки'));
       }
-      return next(new InternalServerError('Неизвестная ошибка'));
+      return next(err);
     });
 };
 
@@ -93,6 +89,6 @@ module.exports.deleteLike = (req, res, next) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Неправильно передан ID карточки'));
       }
-      return next(new InternalServerError('Неизвестная ошибка'));
+      return next(err);
     });
 };
