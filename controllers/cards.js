@@ -3,7 +3,7 @@ const Card = require('../models/card');
 const NotFoundError = require('../errors/not-found-err');
 const InternalServerError = require('../errors/internal-server-err');
 const BadRequestError = require('../errors/bad-request-err');
-const UnauthorizedError = require('../errors/unauthorized-err');
+const ForbiddenError = require('../errors/forbidden-err');
 
 module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
@@ -33,7 +33,7 @@ module.exports.deleteCardById = (req, res, next) => {
         throw new NotFoundError('Карточка не найдена');
       }
       if (card.owner.toString() !== req.user._id) {
-        throw new UnauthorizedError('У вас нет прав на удаление этой карточки');
+        throw new ForbiddenError('У вас нет прав на удаление этой карточки');
       }
       card.deleteOne();
       return res.send(card);

@@ -29,7 +29,6 @@ module.exports.createUser = (req, res, next) => {
     }))
     .then((user) => res.send(user))
     .catch((err) => {
-      console.log(err);
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные в методы создания пользователя'));
       }
@@ -133,7 +132,10 @@ module.exports.updateAvatar = (req, res, next) => {
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return next(new BadRequestError('Введите почту и пароль'));
+    throw new BadRequestError('Введите почту и пароль');
+  }
+  if (!validator.isEmail(email)) {
+    throw new BadRequestError('Передан неправильный email');
   }
 
   User.findOne({ email }).select('+password')
