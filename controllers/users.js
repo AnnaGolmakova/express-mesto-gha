@@ -4,25 +4,21 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 
-const {
-  BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR, UNAUTHORIZED,
-} = require('../constants');
+const NotFoundError = require('../errors/not-found-err');
+const InternalServerError = require('../errors/internal-server-err');
+const BadRequestError = require('../errors/bad-request-err');
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
 
   if (email && !validator.isEmail(email)) {
-    return res.status(BAD_REQUEST).send({
-      message: 'Передан неправильный email',
-    });
+    throw new BadRequestError('Передан неправильный email');
   }
 
   if (!password) {
-    return res.status(BAD_REQUEST).send({
-      message: 'Введите пароль',
-    });
+    throw new BadRequestError('Введите пароль');
   }
 
   return bcrypt.hash(password, 10)
@@ -31,70 +27,59 @@ module.exports.createUser = (req, res) => {
     }))
     .then((user) => res.send(user))
     .catch((err) => {
+      console.log(err);
       if (err.name === 'ValidationError') {
-        return res.status(BAD_REQUEST).send({
-          message: 'Переданы некорректные данные в методы создания пользователя',
-        });
+        next(new BadRequestError('Переданы некорректные данные в методы создания пользователя'));
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({
-        message: 'Произошла неизвестная ошибка',
-      });
+      if (err.name === 'BadRequest') {
+        next(err);
+      }
+      return next(new InternalServerError('Произошла неизвестная ошибка'));
     });
 };
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({
-      message: 'Не удалось получить пользователей',
-    }));
+    .catch(() => next(new InternalServerError('Не удалось получить пользователей')));
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   User.findOne({ _id: req.params.id })
     .then((user) => {
       if (user === null) {
-        return res.status(NOT_FOUND).send({
-          message: 'Пользователь не найден',
-        });
+        throw new NotFoundError('Пользователь не найден');
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(BAD_REQUEST).send({
-          message: 'Неправильно передан ID пользователя',
-        });
+        next(new BadRequestError('Неправильно передан ID пользователя'));
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({
-        message: 'Не удалось получить данные о пользователе',
-      });
+      if (err.name === 'NotFound') {
+        next(err);
+      }
+      return next(new InternalServerError('Не удалось получить данные о пользователе'));
     });
 };
 
-module.exports.getMyUser = (req, res) => {
+module.exports.getMyUser = (req, res, next) => {
   User.findOne({ _id: req.user._id })
     .then((user) => {
       if (user === null) {
-        return res.status(NOT_FOUND).send({
-          message: 'Пользователь не найден',
-        });
+        throw new NotFoundError('Пользователь не найден');
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(BAD_REQUEST).send({
-          message: 'Неправильно передан ID пользователя',
-        });
+        next(new BadRequestError('Неправильно передан ID пользователя'));
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({
-        message: 'Не удалось получить данные о пользователе',
-      });
+      return next(new InternalServerError('Не удалось получить данные о пользователе'));
     });
 };
 
-module.exports.updateUserInfo = (req, res) => {
+module.exports.updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(
@@ -108,23 +93,19 @@ module.exports.updateUserInfo = (req, res) => {
   )
     .then((user) => {
       if (user === null) {
-        return res.status(NOT_FOUND).send({
-          message: 'Пользователь не найден',
-        });
+        throw new NotFoundError('Пользователь не найден');
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(BAD_REQUEST).send({
-          message: 'Неправильно переданы данные',
-        });
+        next(new BadRequestError('Неправильно переданы данные'));
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+      return next(new InternalServerError('Произошла ошибка'));
     });
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -138,23 +119,19 @@ module.exports.updateAvatar = (req, res) => {
   )
     .then((user) => {
       if (user === null) {
-        return res.status(NOT_FOUND).send({
-          message: 'Пользователь не найден',
-        });
+        throw new NotFoundError('Пользователь не найден');
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(BAD_REQUEST).send({
-          message: 'Неправильно переданы данные',
-        });
+        next(new BadRequestError('Неправильно переданы данные'));
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+      return next(new InternalServerError('Произошла ошибка'));
     });
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   User.findOne({ email }).select('+password')
@@ -177,8 +154,9 @@ module.exports.login = (req, res) => {
         .send({ message: 'Logged in successfully 😊 👌' });
     })
     .catch((err) => {
-      res
-        .status(UNAUTHORIZED)
-        .send({ message: err.message });
+      next({ message: err.message });
+      // res
+      //   .status(UNAUTHORIZED)
+      //   .send({ message: err.message });
     });
 };

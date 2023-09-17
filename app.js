@@ -33,6 +33,10 @@ app.use((req, res) => {
   });
 });
 
+app.use((err, req, res, next) => {
+  res.status(err.statusCode).send({ message: err.message });
+});
+
 app.listen(port, () => {
   console.log(`Mesto backend app listening on port ${port}`);
 });
