@@ -10,13 +10,13 @@ const cards = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
 
 const auth = require('./middlewares/auth');
-const { validateLogin, validateRegistration } = require('./middlewares/validation');
+const { validateLogin, validateRegister } = require('./middlewares/validation');
 const errorHandler = require('./middlewares/error-handler');
+
+const NotFoundError = require('./errors/not-found-err');
 
 const app = express();
 const port = 3000;
-
-const NotFoundError = require('./errors/not-found-err');
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useNewUrlParser: true,
@@ -25,11 +25,8 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-app.post('/signin', validateLogin);
-app.post('/signin', login);
-
-app.post('/signup', validateRegistration);
-app.post('/signup', createUser);
+app.post('/signin', validateLogin, login);
+app.post('/signup', validateRegister, createUser);
 
 app.use(auth);
 app.use('/users', users);
