@@ -1,4 +1,3 @@
-const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -10,25 +9,19 @@ const BadRequestError = require('../errors/bad-request-err');
 const UnauthorizedError = require('../errors/unauthorized-err');
 const ConflictError = require('../errors/conflict-err');
 
+const { CREATED } = require('../constants');
+
 module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-
-  if (email && !validator.isEmail(email)) {
-    throw new BadRequestError('Передан неправильный email');
-  }
-
-  if (!password) {
-    throw new BadRequestError('Введите пароль');
-  }
 
   return bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
     .then((user) => {
-      res.send({
+      res.status(CREATED).send({
         _id: user._id,
         name: user.name,
         about: user.about,
@@ -38,10 +31,10 @@ module.exports.createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные в методы создания пользователя'));
+        return next(new BadRequestError('Переданы некорректные данные в методы создания пользователя'));
       }
       if (err.code === 11000) {
-        next(new ConflictError('Такой пользователь уже существует'));
+        return next(new ConflictError('Такой пользователь уже существует'));
       }
       return next(err);
     });
@@ -63,7 +56,7 @@ module.exports.getUserById = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Неправильно передан ID пользователя'));
+        return next(new BadRequestError('Неправильно передан ID пользователя'));
       }
       return next(err);
     });
@@ -79,7 +72,7 @@ module.exports.getMyUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Неправильно передан ID пользователя'));
+        return next(new BadRequestError('Неправильно передан ID пользователя'));
       }
       return next(err);
     });
@@ -105,7 +98,7 @@ module.exports.updateUserInfo = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Неправильно переданы данные'));
+        return next(new BadRequestError('Неправильно переданы данные'));
       }
       return next(err);
     });
@@ -131,7 +124,7 @@ module.exports.updateAvatar = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Неправильно переданы данные'));
+        return next(new BadRequestError('Неправильно переданы данные'));
       }
       return next(err);
     });
@@ -139,12 +132,6 @@ module.exports.updateAvatar = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    throw new BadRequestError('Введите почту и пароль');
-  }
-  if (!validator.isEmail(email)) {
-    throw new BadRequestError('Передан неправильный email');
-  }
 
   User.findOne({ email }).select('+password')
     .then((user) => {
@@ -152,10 +139,10 @@ module.exports.login = (req, res, next) => {
         return Promise.reject(new UnauthorizedError('Неправильные почта или пароль'));
       }
 
-      return [bcrypt.compare(password, user.password), user];
+      return bcrypt.compare(password, user.password).then((result) => [result, user]);
     })
-    .then(([matched, user]) => {
-      if (!matched) {
+    .then(([isPasswordsMatched, user]) => {
+      if (!isPasswordsMatched) {
         return Promise.reject(new UnauthorizedError('Неправильные почта или пароль'));
       }
 
